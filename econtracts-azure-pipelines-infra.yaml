@@ -1,0 +1,16 @@
+trigger:
+- main  # Runs pipeline when changes are pushed to 'main' branch
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Deploy Infrastructure using Bicep'
+  inputs:
+    azureSubscription: 'AzureServiceConnection'  # Replace with your Azure DevOps Service Connection
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az group create --name econtracts-resource-group --location "East US"
+      az deployment group create --resource-group econtracts-resource-group --template-file econtracts-infra/econtracts-azure-infra.bicep --parameters location="East US"
