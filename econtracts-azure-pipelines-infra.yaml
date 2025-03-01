@@ -1,5 +1,6 @@
-trigger:
-- main  # Runs pipeline when changes are pushed to 'main' branch
+# Disable automatic deployment on every commit
+trigger: none  # Prevents pipeline from running on push to main
+pr: none       # Prevents pipeline from running on pull requests
 
 pool:
   vmImage: 'windows-latest'
@@ -10,7 +11,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Deploy Infrastructure using Bicep'
   inputs:
-    azureSubscription: 'AzureServiceConnection'  # Replace with the correct name of your service connection
+    azureSubscription: 'AzureServiceConnection'  # Use the correct service connection name
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
