@@ -10,6 +10,7 @@ variables:
   resourceGroup: 'econtracts-resource-group'
   rollbackEnabled: false  # Default: No rollback unless manually triggered
   retentionLimit: 3  # Keep only the last 3 builds for rollback
+  solutionPath: 'Corevo.eContracts365.SPWeb/Corevo.eContracts365.SPWeb.sln'  # Path to the solution file
 
 resources:
   repositories:
@@ -21,21 +22,22 @@ resources:
       trigger: none  # Prevents automatic triggers
 
 steps:
-# 📌 Step 1: Checkout Deployment Repository from Your Personal GitHub
+# 📌 Step 1: Checkout Only `Corevo.eContracts365.SPWeb` Project
 - checkout: deploymentRepo
+  path: 'eContracts'  # Checkout repository inside this folder
 
 # 📌 Step 2: Restore NuGet Packages
 - task: NuGetCommand@2
   displayName: 'Restore NuGet Packages'
   inputs:
     command: 'restore'
-    restoreSolution: '**/*.sln'
+    restoreSolution: 'eContracts/$(solutionPath)'
 
-# 📌 Step 3: Build the Solution
+# 📌 Step 3: Build the `Corevo.eContracts365.SPWeb` Project (Uses Existing Corevo DLLs from C Drive)
 - task: VSBuild@1
-  displayName: 'Build Solution'
+  displayName: 'Build Corevo.eContracts365.SPWeb'
   inputs:
-    solution: '**/*.sln'
+    solution: 'eContracts/$(solutionPath)'
     msbuildArgs: '/p:Configuration=$(buildConfiguration)'
     platform: 'Any CPU'
     configuration: '$(buildConfiguration)'
@@ -63,9 +65,9 @@ steps:
   displayName: 'Clean Up Old Build Versions'
   condition: succeeded()
 
-# 📌 Step 6: Deploy Directly to Production
+# 📌 Step 6: Deploy `Corevo.eContracts365.SPWeb` to Production
 - task: AzureWebApp@1
-  displayName: 'Deploy to Production'
+  displayName: 'Deploy Corevo.eContracts365.SPWeb to Production'
   condition: and(succeeded(), eq(variables['rollbackEnabled'], 'false')) # Skip if rollback is triggered
   inputs:
     azureSubscription: 'AzureServiceConnection'
