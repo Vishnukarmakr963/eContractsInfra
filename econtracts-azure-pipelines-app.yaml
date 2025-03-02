@@ -30,11 +30,11 @@ resources:
 steps:
 # 📌 Step 1: Checkout Application Repository
 - checkout: deploymentRepo
-  path: 'eContracts'  # Checkout application repository inside this folder
+  path: eContracts  # Checkout application repository inside this folder
 
 # 📌 Step 2: Checkout Infrastructure Repository (Contains Corevo)
 - checkout: infraRepo
-  path: 'eContractsInfra'  # Checkout infra repository inside this folder
+  path: eContractsInfra  # Checkout infra repository inside this folder
 
   # 📌 Debug Step: List Files to Verify Corevo Exists
 - script: |
