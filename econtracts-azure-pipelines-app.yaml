@@ -15,13 +15,16 @@ resources:
   repositories:
     - repository: deploymentRepo  # Alias for the other GitHub repo
       type: github
-      endpoint: MyGitHubServiceConnection  # The GitHub service connection in Azure DevOps
-      name: Vishnukarmakr963/eContracts-Version2.4.1.1-Final-SPWeb  # Replace with actual GitHub repo name
-      ref: 2.4.1.1-Final-Patch-1  # Branch name
+      endpoint: OptimusiqGitHubReadOnly  # The GitHub service connection in Azure DevOps
+      name: optimusiq/eContracts-Version2.4.1.1-Final-SPWeb  # Correct secured repository
+      ref: 2.4.1.1-Final-Patch-1  # Fetch only this branch
+      trigger: none  # Prevents automatic triggers from this repo
 
 steps:
-# 📌 Step 1: Checkout Deployment Repository (from another GitHub repo)
-- checkout: deploymentRepo  
+# 📌 Step 1: Checkout Deployment Repository in Read-Only Mode
+- checkout: deploymentRepo
+  persistCredentials: false  # Ensures no accidental commits
+  #fetchDepth: 1  # Fetches only the latest commit to avoid unnecessary history
 
 # 📌 Step 2: Restore NuGet Packages
 - task: NuGetCommand@2
@@ -45,7 +48,7 @@ steps:
   inputs:
     artifactName: 'econtracts-artifact'
     pathToPublish: '$(Build.ArtifactStagingDirectory)'
-    retentionDays: 7  # Artifacts will expire after 7 days
+    retentionDays: 7  # Artifacts expire after 7 days
 
 # 📌 Step 5: Delete Older Builds Beyond 3 Versions
 - script: |
