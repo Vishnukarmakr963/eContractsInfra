@@ -36,10 +36,17 @@ steps:
 - checkout: infraRepo
   path: 'eContractsInfra'  # Checkout infra repository inside this folder
 
+  # 📌 Debug Step: List Files to Verify Corevo Exists
+- script: |
+    echo "Checking the structure of eContractsInfra..."
+    dir "$(Build.SourcesDirectory)\eContractsInfra"
+  displayName: 'Debug - List eContractsInfra Folder'
+
+
 # 📌 Step 3: Copy Corevo Folder from `eContractsInfra` to `C:/Corevo`
 - script: |
     echo "Copying Corevo folder from Infra Repo to C:/..."
-    xcopy /E /I /Y "$(Build.SourcesDirectory)\eContractsInfra\Corevo" "C:\Corevo"
+    robocopy "$(Build.SourcesDirectory)\eContractsInfra\Corevo" "C:\Corevo" /E /MT:32
   displayName: 'Copy Corevo Reference Folder'
 
 
