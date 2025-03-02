@@ -32,9 +32,9 @@ steps:
   inputs:
     command: 'download'
     downloadDirectory: 'C:/Corevo'
-    feedList: 'CorevoDependenciesNew'  # Ensure this is the exact feed name
-    packageList: 'corevoreference'
-    versionList: '2.0.0'
+    feedName: 'CorevoDependenciesNew'  # Make sure this is the correct feed name
+    packageName: 'corevoreference'
+    packageVersion: '2.0.0'
 
 
 # 📌 Step 3: Debug Step - List Files to Verify Path
