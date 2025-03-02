@@ -1,0 +1,81 @@
+trigger: none  # No auto-deployment on commits
+pr: none       # No auto-deployment on pull requests
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  webAppName: 'econtracts-webapp'  
+  resourceGroup: 'econtracts-resource-group'
+  rollbackEnabled: false  # Default: No rollback unless manually triggered
+  retentionLimit: 3  # Keep only the last 3 builds for rollback
+
+resources:
+  repositories:
+    - repository: deploymentRepo  # Alias for the other GitHub repo
+      type: github
+      endpoint: MyGitHubServiceConnection  # The GitHub service connection in Azure DevOps
+      name: Vishnukarmakr963/eContracts-Version2.4.1.1-Final-SPWeb  # Replace with actual GitHub repo name
+      ref: 2.4.1.1-Final-Patch-1  # Branch name
+
+steps:
+# 📌 Step 1: Checkout Deployment Repository (from another GitHub repo)
+- checkout: deploymentRepo  
+
+# 📌 Step 2: Restore NuGet Packages
+- task: NuGetCommand@2
+  displayName: 'Restore NuGet Packages'
+  inputs:
+    command: 'restore'
+    restoreSolution: '**/*.sln'
+
+# 📌 Step 3: Build the Solution
+- task: VSBuild@1
+  displayName: 'Build Solution'
+  inputs:
+    solution: '**/*.sln'
+    msbuildArgs: '/p:Configuration=$(buildConfiguration)'
+    platform: 'Any CPU'
+    configuration: '$(buildConfiguration)'
+
+# 📌 Step 4: Store Build Artifacts for Future Rollback (Keep Only 3 Versions)
+- task: PublishBuildArtifacts@1
+  displayName: 'Save Build for Rollback'
+  inputs:
+    artifactName: 'econtracts-artifact'
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    retentionDays: 7  # Artifacts will expire after 7 days
+
+# 📌 Step 5: Delete Older Builds Beyond 3 Versions
+- script: |
+    echo "Deleting old artifacts beyond retention limit..."
+    builds=$(az pipelines runs list --top 10 --query "[].id" -o tsv)  # Fetch last 10 builds
+    count=0
+    for build in $builds; do
+      count=$((count+1))
+      if [ $count -gt $(retentionLimit) ]; then
+        echo "Deleting build: $build"
+        az pipelines runs delete --id $build --yes
+      fi
+    done
+  displayName: 'Clean Up Old Build Versions'
+  condition: succeeded()
+
+# 📌 Step 6: Deploy Directly to Production
+- task: AzureWebApp@1
+  displayName: 'Deploy to Production'
+  condition: and(succeeded(), eq(variables['rollbackEnabled'], 'false')) # Skip if rollback is triggered
+  inputs:
+    azureSubscription: 'AzureServiceConnection'
+    appName: '$(webAppName)'
+    package: '$(Build.ArtifactStagingDirectory)/*.zip'
+
+# 📌 Step 7: Rollback to Last Working Build (Manually Triggered)
+- task: AzureWebApp@1
+  displayName: 'Rollback to Last Working Build'
+  condition: eq(variables['rollbackEnabled'], 'true') # Runs only if rollback is triggered
+  inputs:
+    azureSubscription: 'AzureServiceConnection'
+    appName: '$(webAppName)'
+    package: '$(Pipeline.Workspace)/econtracts-artifact/*.zip'  # Redeploy previous artifact
