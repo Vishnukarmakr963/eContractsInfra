@@ -10,78 +10,67 @@ variables:
   resourceGroup: 'econtracts-resource-group'
   rollbackEnabled: false  # Default: No rollback unless manually triggered
   retentionLimit: 3  # Keep only the last 3 builds for rollback
-  solutionPath: 'Corevo.eContracts365.SPWeb/Corevo.eContracts365.SPWeb.sln'  # Path to the solution file
 
 resources:
   repositories:
-    - repository: deploymentRepo  # Alias for your GitHub repository
+    - repository: deploymentRepo  # Alias for your application GitHub repository
       type: github
-      endpoint: MyGitHubServiceConnection  # GitHub service connection for your repository
-      name: Vishnukarmakr963/eContracts-Version2.4.1.1-Final-SPWeb  # Your personal repository name
+      endpoint: MyGitHubServiceConnection  # GitHub service connection for your app
+      name: Vishnukarmakr963/eContracts-Version2.4.1.1-Final-SPWeb  # Your app repository
       ref: 2.4.1.1-Final-Patch-1  # Fetch only this branch
-      trigger: none  # Prevents automatic triggers
+      trigger: none  # Prevents automatic triggers from this repo
+
+    - repository: infraRepo  # Alias for your infrastructure GitHub repository
+      type: github
+      endpoint: MyGitHubServiceConnection  # GitHub service connection for infra repo
+      name: Vishnukarmakr963/eContractsInfra  # Your infra repository
+      ref: main  # Use the latest version from main branch
+      trigger: none  # Prevents automatic triggers from this repo
 
 steps:
-# 📌 Step 1: Checkout Only `Corevo.eContracts365.SPWeb` Project
+# 📌 Step 1: Checkout Application Repository
 - checkout: deploymentRepo
-  path: 'eContracts'  # Checkout repository inside this folder
+  path: 'eContracts'  # Checkout application repository inside this folder
 
-# 📌 Step 2: Download Corevo Folder from DevOps Artifacts
-- task: UniversalPackages@0
-  displayName: 'Download Corevo Reference Folder'
-  inputs:
-    command: 'download'
-    downloadDirectory: 'C:/Corevo'
-    vstsFeed: 'eContracts2411Final/corevodependencieslatest'  # Fully Qualified Feed Name
-    vstsFeedPackage: 'corevoreference'  # Package Name (must match exactly in Azure DevOps)
-    vstsPackageVersion: '0.0.1'  # Package Version (must match exactly)
+# 📌 Step 2: Checkout Infrastructure Repository (Contains Corevo)
+- checkout: infraRepo
+  path: 'eContractsInfra'  # Checkout infra repository inside this folder
 
-
-# 📌 Step 3: Debug Step - List Files to Verify Path
+# 📌 Step 3: Copy Corevo Folder from `eContractsInfra` to `C:/Corevo`
 - script: |
-    echo "Listing files in workspace and Corevo folder:"
-    ls -R $(Build.SourcesDirectory)
-    ls -R C:/Corevo
-  displayName: 'Debug - List Repository and Corevo Files'
+    echo "Copying Corevo folder from Infra Repo to C:/..."
+    xcopy "$(Build.SourcesDirectory)/eContractsInfra/Corevo" "C:/Corevo" /E /Y
+  displayName: 'Copy Corevo Reference Folder'
 
-# 📌 Step 4: Restore NuGet Packages for `Corevo.eContracts365.SPWeb`
+# 📌 Step 4: Debug Step - List Corevo Folder to Verify
+- script: |
+    echo "Checking Corevo folder..."
+    dir C:\Corevo
+  displayName: 'Debug - List Corevo Folder'
+
+# 📌 Step 5: Restore NuGet Packages for `Corevo.eContracts365.SPWeb`
 - task: NuGetCommand@2
   displayName: 'Restore NuGet Packages'
   inputs:
     command: 'restore'
-    restoreSolution: '$(Build.SourcesDirectory)/eContracts/$(solutionPath)'
+    restoreSolution: '$(Build.SourcesDirectory)/eContracts/Corevo.eContracts365.SPWeb/Corevo.eContracts365.SPWeb.sln'
 
-# 📌 Step 5: Build the `Corevo.eContracts365.SPWeb` Project (Uses `C:/Corevo` DLLs)
+# 📌 Step 6: Build the `Corevo.eContracts365.SPWeb` Project (Uses `C:/Corevo` DLLs)
 - task: VSBuild@1
   displayName: 'Build Corevo.eContracts365.SPWeb'
   inputs:
-    solution: '$(Build.SourcesDirectory)/eContracts/$(solutionPath)'
+    solution: '$(Build.SourcesDirectory)/eContracts/Corevo.eContracts365.SPWeb/Corevo.eContracts365.SPWeb.sln'
     msbuildArgs: '/p:Configuration=$(buildConfiguration)'
     platform: 'Any CPU'
     configuration: '$(buildConfiguration)'
 
-# 📌 Step 6: Store Build Artifacts for Future Rollback (Keep Only 3 Versions)
+# 📌 Step 7: Store Build Artifacts for Future Rollback (Keep Only 3 Versions)
 - task: PublishBuildArtifacts@1
   displayName: 'Save Build for Rollback'
   inputs:
     artifactName: 'econtracts-artifact'
     pathToPublish: '$(Build.ArtifactStagingDirectory)'
     retentionDays: 7  # Artifacts expire after 7 days
-
-# 📌 Step 7: Delete Older Builds Beyond 3 Versions
-- script: |
-    echo "Deleting old artifacts beyond retention limit..."
-    builds=$(az pipelines runs list --top 10 --query "[].id" -o tsv)  # Fetch last 10 builds
-    count=0
-    for build in $builds; do
-      count=$((count+1))
-      if [ $count -gt $(retentionLimit) ]; then
-        echo "Deleting build: $build"
-        az pipelines runs delete --id $build --yes
-      fi
-    done
-  displayName: 'Clean Up Old Build Versions'
-  condition: succeeded()
 
 # 📌 Step 8: Deploy `Corevo.eContracts365.SPWeb` to Production
 - task: AzureWebApp@1
