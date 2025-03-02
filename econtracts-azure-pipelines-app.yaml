@@ -26,22 +26,23 @@ steps:
 - checkout: deploymentRepo
   path: 'eContracts'  # Checkout repository inside this folder
 
-# 📌 Step 2: Validate `C:/Corevo` Reference Folder Exists (Fixed)
-- script: |
-    echo Checking for Corevo reference folder...
-    if exist "C:\Corevo\" (
-        echo Corevo folder exists!
-    ) else (
-        echo ERROR: Corevo folder is missing! Build cannot continue.
-        exit /b 1
-    )
-  displayName: 'Validate Corevo Reference Folder'
+# 📌 Step 2: Download Corevo Folder from DevOps Artifacts
+- task: UniversalPackages@0
+  displayName: 'Download Corevo Reference Folder'
+  inputs:
+    command: 'download'
+    downloadDirectory: 'C:/Corevo'
+    feedsToUse: 'select'
+    vstsFeed: 'CorevoDependenciesNew'  # Use the newly created feed
+    vstsFeedPackage: 'corevoreference'
+    vstsPackageVersion: '2.0.0'
 
 # 📌 Step 3: Debug Step - List Files to Verify Path
 - script: |
-    echo "Listing files in workspace:"
+    echo "Listing files in workspace and Corevo folder:"
     ls -R $(Build.SourcesDirectory)
-  displayName: 'Debug - List Repository Files'
+    ls -R C:/Corevo
+  displayName: 'Debug - List Repository and Corevo Files'
 
 # 📌 Step 4: Restore NuGet Packages for `Corevo.eContracts365.SPWeb`
 - task: NuGetCommand@2
