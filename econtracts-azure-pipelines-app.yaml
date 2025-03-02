@@ -26,7 +26,7 @@ steps:
 - checkout: deploymentRepo
   path: 'eContracts'  # Checkout repository inside this folder
 
-# 📌 Step 2: Validate `C:/Corevo` Reference Folder Exists (Windows CMD Fix)
+# 📌 Step 2: Validate `C:/Corevo` Reference Folder Exists (Fixed)
 - script: |
     echo Checking for Corevo reference folder...
     if exist "C:\Corevo\" (
@@ -36,7 +36,6 @@ steps:
         exit /b 1
     )
   displayName: 'Validate Corevo Reference Folder'
-  shell: cmd
 
 # 📌 Step 3: Debug Step - List Files to Verify Path
 - script: |
