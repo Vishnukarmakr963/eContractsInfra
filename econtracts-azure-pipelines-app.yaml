@@ -13,18 +13,16 @@ variables:
 
 resources:
   repositories:
-    - repository: deploymentRepo  # Alias for the other GitHub repo
+    - repository: deploymentRepo  # Alias for your personal GitHub repository
       type: github
-      endpoint: OptimusiqGitHubReadOnly  # The GitHub service connection in Azure DevOps
-      name: optimusiq/eContracts-Version2.4.1.1-Final-SPWeb  # Correct secured repository
+      endpoint: MyGitHubServiceConnection  # GitHub service connection for your personal repository
+      name: Vishnukarmakr963/eContracts-Version2.4.1.1-Final-SPWeb  # Your personal repository name
       ref: 2.4.1.1-Final-Patch-1  # Fetch only this branch
-      trigger: none  # Prevents automatic triggers from this repo
+      trigger: none  # Prevents automatic triggers
 
 steps:
-# 📌 Step 1: Checkout Deployment Repository in Read-Only Mode
+# 📌 Step 1: Checkout Deployment Repository from Your Personal GitHub
 - checkout: deploymentRepo
-  persistCredentials: false  # Ensures no accidental commits
-  #fetchDepth: 1  # Fetches only the latest commit to avoid unnecessary history
 
 # 📌 Step 2: Restore NuGet Packages
 - task: NuGetCommand@2
