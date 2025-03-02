@@ -39,8 +39,9 @@ steps:
 # 📌 Step 3: Copy Corevo Folder from `eContractsInfra` to `C:/Corevo`
 - script: |
     echo "Copying Corevo folder from Infra Repo to C:/..."
-    xcopy "$(Build.SourcesDirectory)/eContractsInfra/Corevo" "C:/Corevo" /E /Y
+    xcopy /E /I /Y "$(Build.SourcesDirectory)\eContractsInfra\Corevo" "C:\Corevo"
   displayName: 'Copy Corevo Reference Folder'
+
 
 # 📌 Step 4: Debug Step - List Corevo Folder to Verify
 - script: |
