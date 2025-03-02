@@ -32,10 +32,9 @@ steps:
   inputs:
     command: 'download'
     downloadDirectory: 'C:/Corevo'
-    feedName: 'eContracts2411Final/CorevoDependenciesNew'  # Fully Qualified Feed Name
-    packageName: 'corevoreference'
-    packageVersion: '2.0.0'
-
+    vstsFeed: 'eContracts2411Final/CorevoDependenciesNew'  # Fully Qualified Feed Name
+    vstsFeedPackage: 'corevoreference'  # Package Name (must match exactly in Azure DevOps)
+    vstsPackageVersion: '2.0.0'  # Package Version (must match exactly)
 
 
 # 📌 Step 3: Debug Step - List Files to Verify Path
