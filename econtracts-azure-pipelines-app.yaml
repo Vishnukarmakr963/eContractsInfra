@@ -32,10 +32,10 @@ steps:
   inputs:
     command: 'download'
     downloadDirectory: 'C:/Corevo'
-    feedsToUse: 'select'
-    vstsFeed: 'CorevoDependenciesNew'  # Use the newly created feed
-    vstsFeedPackage: 'corevoreference'
-    vstsPackageVersion: '2.0.0'
+    feedList: 'CorevoDependenciesNew'  # Ensure this is the exact feed name
+    packageList: 'corevoreference'
+    versionList: '2.0.0'
+
 
 # 📌 Step 3: Debug Step - List Files to Verify Path
 - script: |
