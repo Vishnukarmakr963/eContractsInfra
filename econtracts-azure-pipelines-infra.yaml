@@ -17,5 +17,5 @@ steps:
     inlineScript: |
       echo "Checking directory structure"
       ls -R  # Debugging step to verify file paths
-      az group create --name econtracts-resource-group --location "East US"
+      az group create --name econtracts-resource-group --location "East US" 
       az deployment group create --resource-group econtracts-resource-group --template-file ./econtracts-azure-infra.bicep --parameters location="East US"
