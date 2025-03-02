@@ -1,4 +1,4 @@
-trigger: none  # No auto-deployment on commits
+#trigger: none  # No auto-deployment on commits
 pr: none       # No auto-deployment on pull requests
 
 pool:
