@@ -1,5 +1,5 @@
 # Disable automatic deployment on every commit
-trigger: main  # Prevents pipeline from running on push to main
+trigger: none  # Prevents pipeline from running on push to main
 pr: none       # Prevents pipeline from running on pull requests
 
 pool:
